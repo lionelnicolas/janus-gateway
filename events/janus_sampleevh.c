@@ -708,7 +708,27 @@ static void *janus_sampleevh_handler(void *data) {
 
 			/* Since this a simple plugin, it does the same for all events: so just convert to string... */
 			event_text = json_dumps(output, json_format);
+
 		}
+
+		if (!output) {
+			JANUS_LOG(LOG_ERR, "WIP output is NULL\n");
+			fflush(stdout);
+			fflush(stderr);
+		}
+
+		if (!event) {
+			JANUS_LOG(LOG_ERR, "WIP event is NULL\n");
+			fflush(stdout);
+			fflush(stderr);
+		}
+
+		if (!event_text) {
+			JANUS_LOG(LOG_ERR, "WIP event_text is NULL\n");
+			fflush(stdout);
+			fflush(stderr);
+		}
+
 		/* Whether we just prepared the event or this is a retransmission, send it via HTTP POST */
 		CURLcode res;
 		struct curl_slist *headers = NULL;
@@ -776,12 +796,15 @@ done:
 			curl_easy_cleanup(curl);
 		if(headers)
 			curl_slist_free_all(headers);
-		if(!retransmit)
+		if(!retransmit) {
 			g_free(event_text);
 
-		/* Done, let's unref the event */
-		json_decref(output);
-		output = NULL;
+			/* Done, let's unref the event */
+			json_decref(output);
+			output = NULL;
+		} else {
+			JANUS_LOG(LOG_ERR, "WIP ouf retransmit was %d\n", retransmit);
+		}
 	}
 	JANUS_LOG(LOG_VERB, "Leaving SampleEventHandler handler thread\n");
 	return NULL;
