@@ -725,6 +725,15 @@ static void *janus_sampleevh_handler(void *data) {
 			curl_easy_setopt(curl, CURLOPT_PASSWORD, backend_pwd);
 		}
 		janus_mutex_unlock(&evh_mutex);
+
+		/* Check event text if not NULL (could be due to error during json_dumps()) */
+		if(event_text == NULL) {
+			JANUS_LOG(LOG_ERR, "Ignoring invalid event (event_text is NULL)...\n");
+			json_decref(output);
+			output = NULL;
+			continue;
+		}
+
 		/* Check if we need to compress the data */
 		if(compress) {
 			compressed_len = janus_gzip_compress(compression,
@@ -776,7 +785,7 @@ done:
 			curl_easy_cleanup(curl);
 		if(headers)
 			curl_slist_free_all(headers);
-		if(!retransmit)
+		if(!retransmit && event_text)
 			g_free(event_text);
 
 		/* Done, let's unref the event */
